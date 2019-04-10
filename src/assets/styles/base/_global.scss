@@ -1,0 +1,12 @@
+@import './variable';
+
+body {
+  min-width: 1200px;
+  background-color: $gray-lighter;
+  color: $black-light;
+  font-size: $font-size-medium;
+  font-family: $font-family;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}

@@ -1,0 +1,85 @@
+<template>
+  <div class="pay-table">
+    <el-table :data="pay" border empty-text="没有符合查询条件的数据">
+      <el-table-column label="序号" width="50" show-overflow-tooltip fixed="left">
+        <template slot-scope="scope">{{ scope.row.no }}</template>
+      </el-table-column>
+      <el-table-column label="商户ID" show-overflow-tooltip>
+        <template slot-scope="scope">{{ scope.row.userId }}</template>
+      </el-table-column>
+      <el-table-column label="商户名称" width='250' show-overflow-tooltip>
+        <template slot-scope="scope">{{ scope.row.commercialName }}</template>
+      </el-table-column>
+      <el-table-column label="用户类型" show-overflow-tooltip>
+        <template slot-scope="scope">{{ formatUserType(scope.row.userType) }}</template>
+      </el-table-column>
+      <el-table-column label="费用承担方" show-overflow-tooltip>
+        <template slot-scope="scope">
+          <!-- paySet[1]是编辑后尚未生效的值 -->
+          <p>{{ scope.row.paySet[0].assumePerson == 'renter' ? '付款方承担' : '收款方承担' }}</p>
+          <p v-if="scope.row.paySet[1]" class="edited-item">{{ scope.row.paySet[1].assumePerson == 'renter' ? '付款方承担' : '收款方承担' }}</p>
+        </template>
+      </el-table-column>
+      <el-table-column label="支付通道费" show-overflow-tooltip>
+        <template slot-scope="scope">
+          <!-- paySet[1]是编辑后尚未生效的值 -->
+          <p>{{ scope.row.paySet[0].serviceCharge }}%</p>
+          <p v-if="scope.row.paySet[1]" class="edited-item">{{ scope.row.paySet[1].payCharge }}%</p>
+        </template>
+      </el-table-column>
+      <el-table-column fixed="right" width='140'>
+        <template slot="header" slot-scope="scope">
+          <span>操作</span>
+        </template>
+        <template slot-scope="scope">
+          <el-button
+            type="text"
+            size="small"
+            :disabled="scope.row.paySet[1] ? true : false"
+            @click="edit(scope.$index)">
+            编辑
+          </el-button>
+          <p v-if="scope.row.paySet[1]" class="edited-item">{{ scope.row.paySet[1].effectiveTime }}生效</p>
+        </template>
+      </el-table-column>
+    </el-table>
+  </div>
+</template>
+
+<script>
+  import format   from '@/common/format';
+
+  export default {
+    props: ['pay'],
+    data() {
+      return{
+
+      }
+    },
+    methods: {
+
+      formatUserType(type) {
+        return format.formatUserType(type);
+      },
+
+      edit(id) {
+        this.$emit('edit-click', id);
+      }
+    }
+  };
+</script>
+
+<style lang="scss" scoped>
+  @import '~styles/base/variable';
+
+  .pay-table {
+    margin: 20px auto;
+    overflow-x: auto;
+    p {
+      margin: 4px 0;
+    }
+    .edited-item {
+      color: $red;
+    }
+  }
+</style>

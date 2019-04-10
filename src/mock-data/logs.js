@@ -1,0 +1,15 @@
+export default [
+  { no: 1, merchantId: 10001, merchantName: '智尚佳公寓', modifiedAt: '2018.10.27 23:59:59', content: '支付宝（线下）通道 ：0.60%', reason: '会员升级', operator: '管理员' },
+  { no: 2, merchantId: 10002, merchantName: '智尚佳公寓', modifiedAt: '2018.10.27 23:59:59', content: '支付宝（线下）通道 ：0.60%', reason: '会员升级', operator: '管理员' },
+  { no: 3, merchantId: 10003, merchantName: '智尚佳公寓', modifiedAt: '2018.10.27 23:59:59', content: '支付宝（线下）通道 ：0.60%', reason: '会员升级', operator: '管理员' },
+  { no: 4, merchantId: 10004, merchantName: '智尚佳公寓', modifiedAt: '2018.10.27 23:59:59', content: '费率承担方：租客承担', reason: '会员升级', operator: '管理员' },
+  { no: 5, merchantId: 10005, merchantName: '幸福公寓', modifiedAt: '2018.10.27 23:59:59', content: '支付宝（线下）通道 ：0.60%', reason: '会员升级', operator: '管理员' },
+  { no: 6, merchantId: 10006, merchantName: '智尚佳公寓', modifiedAt: '2018.10.27 23:59:59', content: '支付宝（线下）通道 ：0.60%', reason: '会员升级', operator: '管理员' },
+  { no: 7, merchantId: 10007, merchantName: '智尚佳公寓', modifiedAt: '2018.10.27 23:59:59', content: '支付宝（线下）通道 ：0.60%', reason: '会员升级', operator: '管理员' },
+  { no: 8, merchantId: 10008, merchantName: '智尚佳公寓', modifiedAt: '2018.10.27 23:59:59', content: '支付宝（线下）通道 ：0.60%', reason: '会员升级', operator: '管理员' },
+  { no: 9, merchantId: 10009, merchantName: '智尚佳公寓', modifiedAt: '2018.10.27 23:59:59', content: '微信（线下）通道：1.00%', reason: '会员升级', operator: '管理员' },
+  { no: 10, merchantId: 100010, merchantName: '智尚佳公寓', modifiedAt: '2018.10.27 23:59:59', content: '支付宝（线下）通道 ：0.60%', reason: '会员升级', operator: '管理员' },
+  { no: 11, merchantId: 100011, merchantName: '智尚佳公寓', modifiedAt: '2018.10.27 23:59:59', content: '支付宝（线下）通道 ：0.60%', reason: '会员升级', operator: '管理员' },
+  { no: 12, merchantId: 100012, merchantName: '智尚佳公寓', modifiedAt: '2018.10.27 23:59:59', content: '微信（线上）通道：1.00%', reason: '会员升级', operator: '管理员' },
+  { no: 13, merchantId: 100013, merchantName: '智尚佳公寓', modifiedAt:'2018.10.27 23:59:59', content: '支付宝（线下）通道 ：0.60%', reason: '会员升级', operator: '管理员' },
+];

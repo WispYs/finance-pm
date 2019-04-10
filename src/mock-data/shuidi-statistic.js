@@ -1,0 +1,15 @@
+export default [
+  { cycle: '2018-10-25 ~ 2018-10-26', merchant: '水滴管家', payChannel: '贷记卡（商业委托）', successTradeCount: 999, amount: 10192.10 },
+  { cycle: '2018-10-25 ~ 2018-10-26', merchant: '水滴管家', payChannel: '微信（线下）',     successTradeCount: 999, amount: 10192.10 },
+  { cycle: '2018-10-25 ~ 2018-10-26', merchant: '水滴管家', payChannel: '支付宝（线下）',    successTradeCount: 999, amount: 10192.10 },
+  { cycle: '2018-10-25 ~ 2018-10-26', merchant: '水滴管家', payChannel: '贷记卡（商业委托）', successTradeCount: 999, amount: 10192.10 },
+  { cycle: '2018-10-25 ~ 2018-10-26', merchant: '水滴管家', payChannel: '借记卡（快捷支付）', successTradeCount: 999, amount: 10192.10 },
+  { cycle: '2018-10-25 ~ 2018-10-26', merchant: '水滴管家', payChannel: '贷记卡（商业委托）', successTradeCount: 1000, amount: 10192.10 },
+  { cycle: '2018-10-25 ~ 2018-10-26', merchant: '水滴管家', payChannel: '贷记卡（快捷支付）', successTradeCount: 999, amount: 10192.10 },
+  { cycle: '2018-10-25 ~ 2018-10-26', merchant: '水滴管家', payChannel: '贷记卡（商业委托）', successTradeCount: 999, amount: 10192.10 },
+  { cycle: '2018-10-25 ~ 2018-10-26', merchant: '水滴管家', payChannel: '借记卡（商业委托）', successTradeCount: 999, amount: 10192.10 },
+  { cycle: '2018-10-25 ~ 2018-10-26', merchant: '水滴管家', payChannel: '贷记卡（商业委托）', successTradeCount: 999, amount: 10192.10 },
+  { cycle: '2018-10-25 ~ 2018-10-26', merchant: '水滴管家', payChannel: '微信（线上）',      successTradeCount: 999, amount: 10192.10 },
+  { cycle: '2018-10-25 ~ 2018-10-26', merchant: '水滴管家', payChannel: '贷记卡（商业委托）', successTradeCount: 999, amount: 10192.10 },
+  { cycle: '2018-10-25 ~ 2018-10-26', merchant: '水滴管家', payChannel: '支付宝（线上）',     successTradeCount: 999, amount: 10192.10 },
+];

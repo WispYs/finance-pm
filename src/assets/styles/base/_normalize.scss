@@ -1,0 +1,37 @@
+@import '~normalize.css';
+@import './variable';
+
+button,
+input,
+select,
+textarea {
+  margin: 0;
+  font-family: inherit;
+  outline: none;
+  resize: none;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  color: $blue-dark;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/*移除number类型input的默认样式*/
+input[type=number] {
+    -moz-appearance:textfield;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
