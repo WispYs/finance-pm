@@ -3,20 +3,20 @@
     <div class="my-account__title">
       <div class="my-account__title-item" v-if="accountBanlance.withdraw_deposit_type == '0'">
         <div class="my-account__title-item__text">可提现金额（元）</div>
-        <span class="my-account__title-item__count">{{accountBanlance.avl_bal}}</span>
+        <span class="my-account__title-item__count">{{ accountBanlance.avl_bal }}</span>
         <el-button type="primary" size="medium" class="my-account__title-item__withdraw" @click="withDrawDialog">提现</el-button>
       </div>
-      <div class="my-account__title-item" v-if="">
+      <!-- <div class="my-account__title-item" v-if="financeType == '1'">
         <div class="my-account__title-item__text">账户总金额（元）</div>
-        <span class="my-account__title-item__count">2,222.22</span>
-      </div>
+        <span class="my-account__title-item__count">{{ formatMoney(accountBanlance.balance) }}</span>
+      </div> -->
       <div class="my-account__title-item">
         <div class="my-account__title-item__text">不可提现金额（元）</div>
-        <span class="my-account__title-item__count">{{accountBanlance.ass_bal}}</span>
+        <span class="my-account__title-item__count">{{ formatDecimals(accountBanlance.todayAmount) }}</span>
       </div>
       <div class="my-account__title-item">
         <div class="my-account__title-item__text">保证金（元）</div>
-        <span class="my-account__title-item__count">{{accountBanlance.ass_bal}}</span>
+        <span class="my-account__title-item__count">{{ formatDecimals(accountBanlance.ass_bal) }}</span>
       </div>
 
     </div>
@@ -56,7 +56,12 @@
               </el-select>
             </div>
           </div>
-          <el-table :data="inRecord" border empty-text="没有符合查询条件的数据">
+          <el-table
+            :data="inRecord"
+            v-loading="loading"
+            element-loading-text="加载中"
+            border
+            empty-text="没有符合查询条件的数据">
             <el-table-column label="序号" width="50" show-overflow-tooltip >
               <template slot-scope="scope">{{ scope.row.no }}</template>
             </el-table-column>
@@ -70,10 +75,11 @@
               <template slot-scope="scope">{{ scope.row.tradeNo }}</template>
             </el-table-column>
             <el-table-column label="交易金额" show-overflow-tooltip>
-              <template slot-scope="scope">{{ scope.row.amount }}</template>
+              <template slot-scope="scope">{{ formatDecimals(scope.row.amount) }}</template>
             </el-table-column>
           </el-table>
         </div>
+        <!-- 如果没有数据 不显示分页控件 -->
         <div class="my-account__content-record__pagination" v-if="inRecordTotal > 0">
           <el-pagination
             background
@@ -154,7 +160,8 @@
 
     <with-draw-dialog
       v-if="withDrawDialogVisible"
-      :withDrawData="withDrawDate"
+      :with-draw-loading="withDrawLoading"
+      :with-draw-data="withDrawData"
       @close-dialog="withDrawDialogVisible = false"
       @with-draw="withDraw">
     </with-draw-dialog>
@@ -167,8 +174,8 @@
   import config   from 'config';
   import moment   from 'moment';
   import echarts  from 'echarts'
+  import format   from '@/services/format';
 
-  import transactions    from '@/mock-data/merchant-statistic';
   import WithDrawDialog  from './myAccount/WithDrawDialog';
 
   export default {
@@ -180,13 +187,12 @@
       return {
         financeType: '',
         userId: '',
-        transactions: [],
         currentPage: 1,
         withDrawDialogVisible: false,
         accountBanlance: {},
         inRecord: [],
         inRecordTotal: 0,
-        withDrawDate: {
+        withDrawData: {
           withDrawAccount: '',
           withDrawMoney: null,
           actualMoney: 0
@@ -194,7 +200,6 @@
         calendar: [],
         year: new Date().getFullYear(),
         month: new Date().getMonth() + 1,
-
         yearOption: [],
         monthOption: [],
         startYear:null,
@@ -208,8 +213,6 @@
           startTime: '',
           endTime: '',
           transactionType: '',
-          page: '',
-          pageSize: ''
         },
         pickerOptions: {
           shortcuts: [
@@ -248,19 +251,21 @@
             value: 3,
             label: '提现'
           },
-        ]
+        ],
+        loading: false,
+        withDrawLoading: false // 提现按钮禁用防止重复提交
       };
     },
 
     watch: {
       'tradeDate': function(val) {
-        console.log(val)
         this.filter.startTime = this.tradeDate[0];
         this.filter.endTime = this.tradeDate[1];
+        this.currentPage = 1;
         this.__fetchTradeList();
       },
       'filter.transactionType': function(val) {
-        console.log(val)
+        this.currentPage = 1;
         this.__fetchTradeList();
       },
       '$store.state.user.type': function() {
@@ -276,7 +281,6 @@
           .then(rep => {
             if(rep.data) {
               this.accountBanlance = rep.data;
-
             }
           })
           .catch(err => this.$message.error(err));
@@ -289,25 +293,30 @@
         this.filter.startTime = this.tradeDate[0];
         this.filter.endTime = this.tradeDate[1];
         this.filter.transactionType = '';
-        this.filter.page = this.currentPage;
-        this.filter.pageSize = this.pageSize;
       },
       // 入账记录
       __fetchTradeList() {
         // TODO: connect api
         let data = Object.assign({}, this.filter, {
+          page: this.currentPage,
+          pageSize: this.pageSize,
           userId: this.userId
         })
-        api.tradeInRecord(data)
-          .then(rep => {
-            let offset = (this.currentPage - 1)  * this.pageSize;
-            this.inRecord = rep.data.pageData.map((t, i) => Object.assign({}, t, {
-              no: offset + i + 1,
-            }));
-            // this.inRecord = rep.data.pageData;
-            this.inRecordTotal = rep.data.total;
-          })
-          .catch(err => this.$message.error(err));
+        this.loading = true;
+        setTimeout(() => {
+          api.tradeInRecord(data)
+            .then(rep => {
+              this.loading = false;
+              let offset = (this.currentPage - 1)  * this.pageSize;
+              this.inRecord = rep.data.pageData.map((t, i) => Object.assign({}, t, {
+                no: offset + i + 1,
+              }));
+              // this.inRecord = rep.data.pageData;
+              this.inRecordTotal = rep.data.total;
+            })
+            .catch(err => {this.loading = false;this.$message.error(err);});
+        }, 200)
+
       },
 
       // 初始化对账单筛选项
@@ -349,15 +358,22 @@
           .catch(err => this.$message.error(err))
       },
 
+      formatDecimals(num) {
+        return format.formatDecimals(num);
+      },
+      formatMoney(num) {
+        return format.formatMoney(num);
+      },
       formatTradeType(type) {
         switch(type) {
           case '1' : return '分账';break;
           case '2' : return '交易';break;
           case '3' : return '提现';break;
+          default  : return '-';
         }
       },
 
-      // 日历
+      // 自定义日历
       getMonthData(year, month){
         let ret = [];
         let _this = this;
@@ -465,7 +481,6 @@
           month: month,
           days: ret
         }
-
       },
       selectYear(value){
         this.year = value;
@@ -476,51 +491,66 @@
         this.getMonthData(this.year, value);
       },
 
+      // 前端生成交易流水号传给后代用于保存
+      // 规则：END+yyyyMMddHHmmss+8位随机数字
+      setPayOrderId() {
+        let y = new Date().getFullYear();
+        let m = ('00' + (new Date().getMonth() + 1)).slice(-2);
+        let d = ('00' + new Date().getDate()).slice(-2);
+        let h = ('00' + new Date().getHours()).slice(-2);
+        let min = ('00' + new Date().getMinutes()).slice(-2);
+        let s = ('00' + new Date().getSeconds()).slice(-2);
+        let random = Math.random().toString().slice(-8);  //随机生成8位数
+        let payOrderId = 'END' + y + m + d + h + min + s + random;
+        console.log(payOrderId)
+        return payOrderId;
+      },
+
       // 提现
       withDraw() {
-        if(!this.withDrawDate.withDrawMoney) {
+        if(!this.withDrawData.withDrawMoney) {
           this.$message.error('请输入提现金额');
           return
         }
-        if(this.withDrawDate.withDrawMoney < 5.01) {
+        if(this.withDrawData.withDrawMoney < 5.01) {
           this.$message.error('提现金额不能小于5.01元');
           return
         }
-        if(Number(this.withDrawDate.withDrawMoney) > Number(this.withDrawDate.actualMoney)) {
+        if(Number(this.withDrawData.withDrawMoney) > Number(this.withDrawData.actualMoney)) {
           this.$message.error('提现金额不能大于账户可提现金额');
           return
         }
+
         let params = {
-          amount: Number(this.withDrawDate.withDrawMoney),
+          amount: Number(this.withDrawData.withDrawMoney),
           userId: this.userId,
-          // phone: this.phone,
-          // code: this.code,
-          // payOrderId: this.payOrderId
+          payOrderId: this.setPayOrderId()
         }
+        this.withDrawLoading = true;
         api.fundOutPay(params)
           .then(rep => {
+            this.withDrawLoading = false;
+            this.__fetchAccountBanlance();
             this.withDrawDialogVisible = false;
             this.$message({
               message: '提现成功',
               type: 'success'
             });
           })
-          .catch(err => this.$message.error(err))
+          .catch(err => {this.$message.error(err);this.withDrawLoading = false;})
 
       },
       withDrawDialog() {
         this.withDrawDialogVisible = true;
         api.getFundOutCardBinInfo(this.userId)
           .then(rep => {
-            console.log(rep)
             if(rep.data) {
-              this.withDrawDate = {
+              this.withDrawData = {
                 withDrawAccount: rep.data.bankName + rep.data.cardNo,
                 withDrawMoney: null,
                 actualMoney: this.accountBanlance.avl_bal
               }
             }
-
           })
           .catch(err => this.$message.error(err))
       },
@@ -533,7 +563,7 @@
       },
 
       // 近30日入账金额统计
-      draw () {
+      draw() {
         let nearMonth = [];
         for(let i = 0; i < 30; i++){
           let newDate = new Date(new Date().setDate(new Date().getDate()+i));
@@ -596,7 +626,6 @@
       this.__initTradeFilter();
       this.__initTradeListFilter();
       this.getMonthData();
-
 
     }
   };
@@ -669,10 +698,6 @@
         &__container {
           width: 100%;
           height: 500px;
-          // #select-time {
-          //   text-align:right;
-          //   padding-right: 111px;
-          // }
           .el-select {
             width: 120px;
             margin-right: 10px;

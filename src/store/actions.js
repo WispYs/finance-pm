@@ -1,4 +1,5 @@
 import api from '@/api/api';
+import router from '@/router'
 
 export default {
   TOGGLE_SIDEBAR({ commit }, collapse) {
@@ -11,16 +12,21 @@ export default {
 
   LOGIN({ commit }) {
     const token = localStorage.getItem('FINANCE_TOKEN');
-    api.fetchUserLogin({ token })
+    if(token) {
+      api.fetchUserLogin({ token })
       .then(rep => {
         let user = rep.data;
-        console.log(rep.data)
         if(user) {
           commit('SET_USER', { user });
         }
 
       })
-      .catch(err => console.log(err))
+      .catch(err => this.$message.error(err))
+    }else {
+      console.log('-------no token------')
+      router.push({ name: 'login' })
+    }
+
 
   }
 };

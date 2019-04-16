@@ -4,7 +4,7 @@
       <el-collapse v-model="filterBarActiveName">
         <el-collapse-item title="筛选条件" name="1">
           <filter-bar
-            :parentMerchantOptions="parentMerchantOptions"
+            :parent-merchant-options="parentMerchantOptions"
             @query-click="queryStatistic"
             @reset-click="queryStatistic">
           </filter-bar>
@@ -14,7 +14,11 @@
 
     <template>
       <div class="routing-statistic__table">
-        <statistic-table :withdraw="statisticList"></statistic-table>
+        <statistic-table
+          v-loading="loading"
+          element-loading-text="加载中"
+          :withdraw="statisticList">
+        </statistic-table>
       </div>
     </template>
 
@@ -60,6 +64,7 @@
         },
         currentPage: 1,
         pageSize: 10,
+        loading: false
       };
     },
 
@@ -70,33 +75,35 @@
           page: this.currentPage,
           pageSize: this.pageSize,
         })
-        api.getRoutingRecord(filters)
-          .then(rep => {
-            console.log(rep);
-            if(rep) {
-              this.parentMerchantOptions = rep.data.list.filter(it => it != null);
-              if(rep.data.routingRecordsMoudels.length <= 0) {
-                this.statisticList = [];
-                this.statisticListTotal = rep.data.count;
-                // this.$message.error('暂无数据')
+        this.loading = true;
+        setTimeout(() => {
+          api.getRoutingRecord(filters)
+            .then(rep => {
+              this.loading = false;
+              if(rep) {
+                this.parentMerchantOptions = rep.data.list.filter(it => it != null);
+                if(rep.data.routingRecordsMoudels.length <= 0) {
+                  this.statisticList = [];
+                  this.statisticListTotal = rep.data.count;
+                  // this.$message.error('暂无数据')
 
+                }else {
+                  let offset = (this.currentPage - 1) * this.pageSize;
+                  this.statisticList = rep.data.routingRecordsMoudels.map((t, i) => Object.assign({}, t, {
+                    no: offset + i + 1
+                  }));
+                  this.statisticListTotal = rep.data.count;
+                }
               }else {
-                let offset = (this.currentPage - 1) * this.pageSize;
-                this.statisticList = rep.data.routingRecordsMoudels.map((t, i) => Object.assign({}, t, {
-                  no: offset + i + 1
-                }));
-                this.statisticListTotal = rep.data.count;
+                this.$message.error('暂无数据');
               }
-            }else {
-              this.$message.error('暂无数据');
-            }
+            })
+            .catch(err => {this.loading = false;this.$message.error(err);})
+        }, 200)
 
-          })
-          .catch(err => this.$message.error(err))
       },
 
       queryStatistic(filter) {
-        console.log(filter)
         this.currentPage = 1;
         this.currentFilter = filter;
 

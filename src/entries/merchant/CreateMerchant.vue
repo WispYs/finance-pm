@@ -1,5 +1,5 @@
 <template>
-  <div class="merchant-create">
+  <div class="merchant-create" v-loading="createMerchantLoading">
     <el-form class="merchant-create__el-form" :rules="rule" label-width="130px" ref="commercial" :model="commercial">
       <div class="merchant-create__el-form-label">
         <h3>基础信息</h3>
@@ -116,7 +116,7 @@
             filterable
             remote
             reserve-keyword
-            placeholder="请选择开户银行"
+            placeholder="请搜索开户银行"
             :remote-method="searchBank"
             :loading="searchBankLoading"
             class="search-bank">
@@ -194,7 +194,7 @@
 <script>
   import api        from '@/api/api';
   import bankList   from '@/data/bank-list';
-  import format     from '@/common/format';
+  import format     from '@/services/format';
 
   export default {
     data() {
@@ -338,6 +338,7 @@
           value: '0',
           label: '手动提现'
         }],
+        createMerchantLoading: false, // 防止重复提交
       }
     },
     watch: {
@@ -381,7 +382,6 @@
         this.commercial.endTime = '';
       },
       searchBank(query) {
-        console.log('----')
         if (query !== '') {
           this.searchBankLoading = true;
           let data = {
@@ -401,7 +401,6 @@
                     }
                     searchBankList.push(item);
                   }
-                  console.log(searchBankList);
                   this.searchBankList = searchBankList;
                 }else {
                   this.searchBankList = [];
@@ -415,7 +414,6 @@
           this.__fetchBankList();
           this.commercial.bankCode = '';
         }
-        console.log(query)
       },
       // 格式化时间
       formatDate(date) {
@@ -434,17 +432,16 @@
       },
       submitForm(formName) {
         this.$refs[formName].validate((valid) => {
-          console.log(valid)
           if (valid) {
             if(this.commercial.idNoUrl.split(',')[0] == '' || this.commercial.idNoUrl.split(',')[1] == ''){
               this.$message.error('请上传法人身份证');
               return
             }
             let token = localStorage.getItem('FINANCE_TOKEN') || '';
+            this.createMerchantLoading = true;
             api.createUser(token)
               .then(rep => {
                 this.userId = rep.data;
-
                 // 企业入网
                 let params = {
                   commercial: {
@@ -487,6 +484,16 @@
                     api.setAccountSetting(setting)
                       .then(rep => {
                         console.log('setting-----')
+                        this.$message({
+                          message: '新增商户成功',
+                          type: 'success'
+                        });
+                        this.$router.push({
+                          name: 'merchantMgt__result',
+                          params: {
+                            id: this.userId
+                          }
+                        })
                       })
                       .catch(err => this.$message.error(err));
                   })
@@ -595,7 +602,7 @@
   }
 </script>
 
-<style lang="scss">
+<style lang="scss" >
   @import '~styles/base/variable';
 
   .merchant-create {

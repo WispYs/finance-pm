@@ -41,12 +41,14 @@ export  default {
 
   // 保留小数点后两位
   formatDecimals(num) {
-    return num ? parseFloat(num).toFixed(2) : '';
+    let number = num ? num : 0;
+    return parseFloat(number).toFixed(2);
   },
 
   // 格式化金额(逗号隔开)
   formatMoney(num) {
-    return num ? parseFloat(num).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '';
+    let number = num ? num : 0;
+    return parseFloat(number).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   },
 
   // 商户类型

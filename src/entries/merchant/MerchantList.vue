@@ -4,7 +4,7 @@
       <el-collapse v-model="filterBarActiveName">
         <el-collapse-item title="筛选条件" name="1">
           <filter-bar
-            :parentMerchantOptions="parentMerchantOptions"
+            :parent-merchant-options="parentMerchantOptions"
             @query-click="queryMerchants"
             @reset-click="queryMerchants">
           </filter-bar>
@@ -19,6 +19,8 @@
 
     <div class="merchant-list__table">
       <merchant-table
+        v-loading="loading"
+        element-loading-text="加载中"
         :merchants="merchants"
         @selection-change="selectedMerchantChange"
         @set-table-field-click="toSetTableField"
@@ -153,6 +155,7 @@
         unfreezeMerchantDialogVisible: false,
         editFeeDialogVisible: false,
         editFeePayerDialogVisible: false,
+        loading: false
       };
     },
 
@@ -177,41 +180,44 @@
           page: this.currentPage,
           pageSize: this.pageSize,
         })
-        api.fetchMerchantList(filters)
-          .then(rep => {
-            console.log(rep)
-            if(rep) {
-              // 筛选项所属商户
-              this.parentMerchantOptions = rep.data.list;
-              if(rep.data.merchantDataModels.length <= 0) {
-                this.merchants = [];
-                this.merchantsTotal = rep.data.count;
-                // this.$message.error('暂无数据')
+        this.loading = true;
+        setTimeout(() => {
+          api.fetchMerchantList(filters)
+            .then(rep => {
+              this.loading = false;
 
+              if(rep) {
+                // 筛选项所属商户
+                this.parentMerchantOptions = rep.data.list;
+                if(rep.data.merchantDataModels.length <= 0) {
+                  this.merchants = [];
+                  this.merchantsTotal = rep.data.count;
+                  // this.$message.error('暂无数据')
+
+                }else {
+                  let offset = (this.currentPage - 1) * this.pageSize;
+                  this.merchants = rep.data.merchantDataModels.map((t, i) => Object.assign({}, t, {
+                    no: offset + i + 1
+                  }));
+                  this.merchantsTotal = rep.data.count;
+                }
               }else {
-                let offset = (this.currentPage - 1) * this.pageSize;
-                this.merchants = rep.data.merchantDataModels.map((t, i) => Object.assign({}, t, {
-                  no: offset + i + 1
-                }));
-                this.merchantsTotal = rep.data.count;
+                this.$message.error('暂无数据')
               }
-            }else {
-              this.$message.error('暂无数据')
-            }
 
-          })
-          .catch(err => this.$message.error(err))
+            })
+            .catch(err => {this.loading = false;this.$message.error(err);})
+        }, 200)
+
       },
 
       queryMerchants(filter) {
         this.currentPage = 1;
         this.currentFilter = filter;
-        console.log(filter)
         this.__fetchMerchants(this.currentFilter);
       },
 
       selectedMerchantChange(selectedMerchants) {
-        console.log(selectedMerchants);
         this.selectedMerchants = selectedMerchants;
       },
 
@@ -290,9 +296,7 @@
       //   });
       // },
       currentPageChange(page) {
-        console.log(page)
         this.currentPage = page;
-        // TODO: update data
         this.__fetchMerchants(this.currentFilter);
       }
     },

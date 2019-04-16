@@ -4,7 +4,7 @@
       <el-collapse v-model="filterBarActiveName">
         <el-collapse-item title="筛选条件" name="1">
           <filter-bar
-            :parentMerchantOptions="parentMerchantOptions"
+            :parent-merchant-options="parentMerchantOptions"
             @query-click="queryTemplate"
             @reset-click="queryTemplate">
           </filter-bar>
@@ -15,7 +15,12 @@
 
     <template>
       <div class="routing-template__table">
-        <template-table :withdraw="templateList" @delete-template="deleteTemplateShow"></template-table>
+        <template-table
+          v-loading="loading"
+          element-loading-text="加载中"
+          :withdraw="templateList"
+          @delete-template="deleteTemplateShow">
+        </template-table>
       </div>
     </template>
 
@@ -69,6 +74,7 @@
         },
         currentPage: 1,
         pageSize: 10,
+        loading: false
       };
     },
 
@@ -78,33 +84,35 @@
           page: this.currentPage,
           pageSize: this.pageSize
         });
+        this.loading = true;
+        setTimeout(() => {
+          api.getRoutingTemplates(filters)
+            .then(rep => {
+              this.loading = false;
+              if(rep) {
+                this.parentMerchantOptions = rep.data.list ? rep.data.list.filter(it => it != null) : [];
+                if(rep.data.data.pageData.length <= 0) {
+                  this.templateList = [];
+                  this.templateListTotal = rep.data.data.total;
+                  // this.$message.error('暂无数据')
 
-        api.getRoutingTemplates(filters)
-          .then(rep => {
-            console.log(rep);
-            if(rep) {
-              this.parentMerchantOptions = rep.data.list ? rep.data.list.filter(it => it != null) : [];
-              if(rep.data.data.pageData.length <= 0) {
-                this.templateList = [];
-                this.templateListTotal = rep.data.data.total;
-                // this.$message.error('暂无数据')
-
+                }else {
+                  let offset = (this.currentPage - 1) * this.pageSize;
+                  this.templateList = rep.data.data.pageData.map((t, i) => Object.assign({}, t, {
+                    no: offset + i + 1
+                  }));
+                  this.templateListTotal = rep.data.total;
+                }
               }else {
-                let offset = (this.currentPage - 1) * this.pageSize;
-                this.templateList = rep.data.data.pageData.map((t, i) => Object.assign({}, t, {
-                  no: offset + i + 1
-                }));
-                this.templateListTotal = rep.data.total;
+                this.$message.error('暂无数据')
               }
-            }else {
-              this.$message.error('暂无数据')
-            }
-          })
-          .catch(err => this.$message.error(err))
+            })
+            .catch(err => {this.loading = false;this.$message.error(err);})
+        }, 200)
+
       },
 
       queryTemplate(filter) {
-        console.log(filter)
         this.currentPage = 1;
         this.currentFilter = filter;
 

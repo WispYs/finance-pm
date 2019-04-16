@@ -56,7 +56,7 @@
 
 <script>
   import api      from '@/api/api';
-  import format   from '@/common/format';
+  import format   from '@/services/format';
 
   export default {
     props: ['withDrawDetail'],

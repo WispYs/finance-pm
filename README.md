@@ -47,7 +47,7 @@
   
 
 ## Element UI库 ##
-element-ui@2.4 是一套基于 vue 2.0 的PC端组件库，有助于方便快捷的实现页面结构与交互。使用方法请查阅[官方文档](https://www.yarnpkg.com/zh-Hans/docs/install#mac-stable)。
+element-ui@2.4 是一套基于 vue 2.0 的PC端组件库，有助于方便快捷的实现页面结构与交互。使用方法请查阅[官方文档](http://element.eleme.io/#/zh-CN)。
 
 
 ## 图标库 ##

@@ -46,7 +46,7 @@
 </template>
 
 <script>
-  import format   from '@/common/format';
+  import format   from '@/services/format';
 
   export default {
     props: ['accounts'],

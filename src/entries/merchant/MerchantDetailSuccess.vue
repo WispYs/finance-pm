@@ -84,28 +84,29 @@
 
       <div class="merchant-detail__pic" v-if="picFileShow">
         <h3 class="merchant-detail__pic-title">影像件资料</h3>
-        <div class="merchant-detail__pic-item" v-if="merchantInfo.businessLicenseUrl">
-          <img :src="merchantInfo.businessLicenseUrl" alt="">
-        </div>
-        <div class="merchant-detail__pic-item" v-if="merchantInfo.idNoUrl_1">
-          <img :src="merchantInfo.idNoUrl_1" alt="">
-        </div>
-        <div class="merchant-detail__pic-item" v-if="merchantInfo.idNoUrl_2">
-          <img :src="merchantInfo.idNoUrl_2" alt="">
-        </div>
-        <div class="merchant-detail__pic-item" v-if="merchantInfo.lincenceUrl">
-          <img :src="merchantInfo.lincenceUrl" alt="">
+        <div class="merchant-detail__pic-item" v-for="(item, i) in merchantImgUrls" v-if="item">
+          <img :src="item" @click="previewMerchantImg(i)" alt="">
         </div>
       </div>
     </el-form>
+    <img-preview
+      v-if="imgPreviewShow"
+      @close-click="imgPreviewShow = false"
+      :img-index="imgPreviewIndex"
+      :img-list="merchantImgUrls">
+    </img-preview>
   </div>
 </template>
 
 <script>
-  import api      from '@/api/api';
-  import format   from '@/common/format';
+  import api        from '@/api/api';
+  import format     from '@/services/format';
+  import ImgPreview from '@/components/ImgPreview';
 
   export default {
+    components: {
+      ImgPreview
+    },
     data() {
       return {
         financeType: '',
@@ -128,6 +129,9 @@
           idNoUrl_2: '',
           lincenceUrl: '',
         },
+        imgPreviewShow: false,
+        merchantImgUrls: [],
+        imgPreviewIndex: 0
       }
     },
     watch: {
@@ -166,6 +170,7 @@
             this.merchantInfo.idNoUrl_1 = rep.data.commercial.idNoUrl ? rep.data.commercial.idNoUrl.split(',')[0] : '';
             this.merchantInfo.idNoUrl_2 = rep.data.commercial.idNoUrl ? rep.data.commercial.idNoUrl.split(',')[1] : '';
             this.merchantInfo.lincenceUrl = rep.data.commercial.lincenceUrl;
+            this.merchantImgUrls = [this.merchantInfo.businessLicenseUrl, this.merchantInfo.idNoUrl_1, this.merchantInfo.idNoUrl_2, this.merchantInfo.lincenceUrl];
           })
           .catch(err => this.$message.error(err))
       },
@@ -185,6 +190,12 @@
       handlePicFile() {
         this.picFileShow = !this.picFileShow;
       },
+
+      // 查看大图
+      previewMerchantImg(index) {
+        this.imgPreviewShow = true;
+        this.imgPreviewIndex = index;
+      }
 
     },
     created() {
@@ -313,6 +324,7 @@
         }
       }
     }
+
     &__footer{
       text-align: center;
       margin-top: 50px;

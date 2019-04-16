@@ -17,7 +17,12 @@
     </div> -->
 
     <div class="with-draw__table">
-      <with-draw-table :withdraw="withDrawList" @edit-click="editWithDraw"></with-draw-table>
+      <with-draw-table
+        v-loading="loading"
+        element-loading-text="加载中"
+        :withdraw="withDrawList"
+        @edit-click="editWithDraw">
+      </with-draw-table>
     </div>
 
     <div class="with-draw__pagination-bar" v-if="withDrawListTotal > 0">
@@ -35,7 +40,7 @@
       @close-click="logDialogVisible = false">
     </log-dialog>
     <edit-dialog
-      :withDrawDetail="editWithDrawDetail"
+      :with-draw-detail="editWithDrawDetail"
       v-if="editDialogVisible"
       @reload="reloadWithDraw"
       @close-click="editDialogVisible = false">
@@ -74,6 +79,7 @@
         pageSize: 10,
         logDialogVisible: false,
         editDialogVisible: false,
+        loading: false
       };
     },
 
@@ -83,24 +89,28 @@
           pageNum: this.currentPage,
           pageSize: this.pageSize
         });
-
-        api.fetchSettingWithdraw(data)
-          .then(rep => {
-            if(rep) {
-              if(rep.data.pageData.length <= 0) {
-                this.withDrawList = [];
+        this.loading = true;
+        setTimeout(() => {
+          api.fetchSettingWithdraw(data)
+            .then(rep => {
+              this.loading = false;
+              if(rep) {
+                if(rep.data.pageData.length <= 0) {
+                  this.withDrawList = [];
+                  this.withDrawListTotal = rep.data.total;
+                }
+                let offset = (this.currentPage - 1)  * this.pageSize;
+                this.withDrawList = rep.data.pageData.map((t, i) => Object.assign({}, t, {
+                  no: offset + i + 1
+                }));
                 this.withDrawListTotal = rep.data.total;
+              }else {
+                this.$message.error('暂无数据');
               }
-              let offset = (this.currentPage - 1)  * this.pageSize;
-              this.withDrawList = rep.data.pageData.map((t, i) => Object.assign({}, t, {
-                no: offset + i + 1
-              }));
-              this.withDrawListTotal = rep.data.total;
-            }else {
-              this.$message.error('暂无数据');
-            }
-          })
-          .catch(err => this.$message.error(err))
+            })
+            .catch(err => {this.loading = false;this.$message.error(err);})
+        }, 200)
+
       },
 
       queryWithDraw(filter) {

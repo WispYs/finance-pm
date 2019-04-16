@@ -1,7 +1,7 @@
 <template>
-  <div class="merchant-create">
-    <el-form class="merchant-create__el-form" label-width="130px" ref="template" :model="template">
-      <div class="merchant-create__el-form-label">
+  <div class="template-create">
+    <el-form class="template-create__el-form" label-width="130px" ref="template" :model="template">
+      <div class="template-create__el-form-label">
         <h3>基础信息</h3>
         <el-form-item label="模板名称">
           <i class="icon-require">*</i>
@@ -9,7 +9,7 @@
           <b v-if="!requireName" class="require-tip">请输入模板名称</b>
         </el-form-item>
       </div>
-      <div class="merchant-create__el-form-label">
+      <div class="template-create__el-form-label">
         <h3>分账设置</h3>
         <el-form-item
           v-for="item in payAssume"
@@ -43,7 +43,7 @@
         </div>
 
       </div>
-      <div class="merchant-create__el-form-label">
+      <div class="template-create__el-form-label" v-if="financeAssumePerson == 'landlord'">
         <h3>扣费模式</h3>
         <el-form-item label="通道费承担方">
           <i class="icon-require" style="left: -108px;">*</i>
@@ -73,6 +73,7 @@
     data() {
 
       return {
+        financeAssumePerson: '',  // 登录用户通道费承担方 'landlord': '收款方'；'renter': '付款方'
         template: {
           templateName: '',
           bearPerson: '',
@@ -110,6 +111,9 @@
         }else {
           this.requirePayAssume = true;
         }
+      },
+      '$store.state.user.assume_person': function() {
+        this.financeAssumePerson = this.$store.state.user.assume_person;
       }
     },
     methods: {
@@ -184,7 +188,6 @@
         }
         api.createRoutingTemplates(this.template)
           .then(rep => {
-            console.log(rep)
             this.$message({
               message: '添加模板成功',
               type: 'success'
@@ -202,21 +205,21 @@
 
     },
     created(){
-
-
+      this.financeAssumePerson = this.$store.state.user ? this.$store.state.user.assume_person : '';
     }
   }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
   @import '~styles/base/variable';
 
-  .merchant-create {
+  .template-create {
     padding: 0 100px;
 
     &__el-form {
       width: 460px;
       margin: 0 auto;
+
       &-label {
         margin-bottom: 30px;
       }

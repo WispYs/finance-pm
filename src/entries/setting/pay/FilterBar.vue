@@ -31,7 +31,7 @@
       },
       __getFilter() {
         return {
-          data: this.condition,
+          condition: this.condition,
         };
       },
 

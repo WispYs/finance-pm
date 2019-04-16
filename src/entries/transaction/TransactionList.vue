@@ -42,7 +42,11 @@
 
     <template>
       <div class="transaction-list__table">
-        <transaction-table :transactions="transactions"></transaction-table>
+        <transaction-table
+          v-loading="loading"
+          element-loading-text="加载中"
+          :transactions="transactions">
+        </transaction-table>
       </div>
     </template>
 
@@ -89,7 +93,8 @@
         totalTransactionAmount: 0,
         totalTransactionCount: 0,
         currentPage: 1,
-        pageSize: 10
+        pageSize: 10,
+        loading: false
       };
     },
 
@@ -99,31 +104,34 @@
           page: this.currentPage,
           pageSize: this.pageSize
         });
+        this.loading = true;
+        setTimeout(() => {
+          api.fetchMerchantTransactions(data)
+            .then(rep => {
+              this.loading = false;
+              if(rep){
+                let offset = (this.currentPage - 1)  * this.pageSize;
+                this.transactions = rep.data.queryOrderModels.map((t, i) => Object.assign({}, t, {
+                  no: offset + i + 1
+                }));
+                this.transactionsTotal = rep.data.count;
+                // 过滤 只显示联动的支付通道
+                this.payChannels = rep.data.payChannels.filter(t => t.pay_channel_3rd.indexOf('LD') > -1);
+                this.totalTransactionAmount = rep.data.countAmount || 0;
+                this.totalTransactionCount = rep.data.count;
+              }else {
+                this.$message.error('暂无数据')
+              }
 
-        api.fetchMerchantTransactions(data)
-          .then(rep => {
-            if(rep){
-              let offset = (this.currentPage - 1)  * this.pageSize;
-              this.transactions = rep.data.queryOrderModels.map((t, i) => Object.assign({}, t, {
-                no: offset + i + 1
-              }));
-              this.transactionsTotal = rep.data.count;
-              // 过滤 只显示联动的支付通道
-              this.payChannels = rep.data.payChannels.filter(t => t.pay_channel_3rd.indexOf('LD') > -1);
-              this.totalTransactionAmount = rep.data.countAmount || 0;
-              this.totalTransactionCount = rep.data.count;
-            }else {
-              this.$message.error('暂无数据')
-            }
+            })
+            .catch(err => {this.loading = false;this.$message.error(err);})
+        }, 200)
 
-          })
-          .catch(err => this.$message.error(err))
       },
 
       queryTransactions(filter) {
         this.currentPage = 1;
         this.currentFilter = filter;
-        console.log(filter)
         this.__fetchTransactions(filter);
       },
 

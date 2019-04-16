@@ -13,11 +13,11 @@
 
     <div class="settlement-list__banner">
       <div class="settlement-list__banner__left">
-        <span class="settlement-list__banner__total-amount">
+        <!-- <span class="settlement-list__banner__total-amount">
           <span>到账总金额: </span>
           <span class="amount">{{ totalTransactionAmount }}</span>
           <span>元</span>
-        </span>
+        </span> -->
       </div>
 
       <div class="settlement-list__banner__right">
@@ -33,7 +33,11 @@
     </div>
 
     <div class="settlement-list__table">
-      <settlement-table :settlements="settlements"></settlement-table>
+      <settlement-table
+        v-loading="loading"
+        element-loading-text="加载中"
+        :settlements="settlements">
+      </settlement-table>
     </div>
 
     <div class="settlement-list__pagination-bar" v-if="settlementsTotal > 0">
@@ -76,7 +80,8 @@
         },
         totalTransactionAmount: 0,
         currentPage: 1,
-        pageSize: 10
+        pageSize: 10,
+        loading: false
       };
     },
 
@@ -87,23 +92,26 @@
           page: this.currentPage,
           pageSize: this.pageSize
         });
+        this.loading = true;
+        setTimeout(() => {
+          api.fetchMerchantSettlements(data)
+            .then(rep => {
+              this.loading = false;
+              let offset = (this.currentPage - 1)  * this.pageSize;
+              this.settlements = rep.data.querySettlementModels.map((t, i) => Object.assign({}, t, {
+                no: offset + i + 1
+              }));
+              this.settlementsTotal = rep.data.count;
+              this.totalTransactionAmount = rep.data.countAmount || 0;
+            })
+            .catch(err => {this.loading = false;this.$message.error(err);})
+        }, 200)
 
-        api.fetchMerchantSettlements(data)
-          .then(rep => {
-            let offset = (this.currentPage - 1)  * this.pageSize;
-            this.settlements = rep.data.querySettlementModels.map((t, i) => Object.assign({}, t, {
-              no: offset + i + 1
-            }));
-            this.settlementsTotal = rep.data.count;
-            this.totalTransactionAmount = rep.data.countAmount || 0;
-          })
-          .catch(err => this.$message.error(err))
       },
 
       querySettlements(filter) {
         this.currentPage = 1;
         this.currentFilter = filter;
-
         this.__fetchSettlements(filter);
       },
 
@@ -114,7 +122,6 @@
 
       currentPageChange(page) {
         this.currentPage = page;
-
         this.__fetchSettlements(this.currentFilter);
       }
     },

@@ -13,13 +13,13 @@
             <div>{{account}}</div>
           </el-form-item>
           <el-form-item label="旧密码" prop="oldPass">
-            <el-input type="password" v-model="editPassworld.oldPass" autocomplete="off"></el-input>
+            <el-input type="password" v-model="editPassworld.oldPass" placeholder="请输入旧密码" autocomplete="off"></el-input>
           </el-form-item>
           <el-form-item label="新密码" prop="newPass">
-            <el-input type="password" v-model="editPassworld.newPass" autocomplete="off"></el-input>
+            <el-input type="password" v-model="editPassworld.newPass" placeholder="请输入新密码" autocomplete="off"></el-input>
           </el-form-item>
           <el-form-item label="确认密码" prop="checkPass">
-            <el-input type="password" v-model="editPassworld.checkPass" autocomplete="off"></el-input>
+            <el-input type="password" v-model="editPassworld.checkPass" placeholder="请再次输入新密码" autocomplete="off"></el-input>
           </el-form-item>
           <el-form-item>
             <el-button @click="resetForm('editPassworld')">重置</el-button>
@@ -33,7 +33,6 @@
 
 <script>
   import api    from '@/api/api';
-  import logs   from '@/mock-data/logs';
 
   export default {
     props: ['account'],
@@ -59,7 +58,7 @@
       };
       let validateCheckPass = (rule, value, callback) => {
         if (value === '') {
-          callback(new Error('请再次输入密码'));
+          callback(new Error('请再次输入新密码'));
         } else if (!/^[A-Za-z0-9]{6,18}$/.test(value)) {
           callback(new Error('必须由6-18位英文字母或数字组成'));
         } else if (value !== this.editPassworld.newPass) {

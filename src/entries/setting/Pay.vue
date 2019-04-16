@@ -17,7 +17,12 @@
     </div> -->
 
     <div class="pay__table">
-      <pay-table :pay="payList" @edit-click="editPay"></pay-table>
+      <pay-table
+        v-loading="loading"
+        element-loading-text="加载中"
+        :pay="payList"
+        @edit-click="editPay">
+      </pay-table>
     </div>
 
     <div class="pay__pagination-bar" v-if="payListTotal > 0">
@@ -35,7 +40,7 @@
       @close-click="logDialogVisible = false">
     </log-dialog>
     <edit-dialog
-      :payDetail="editPayDetail"
+      :pay-detail="editPayDetail"
       v-if="editDialogVisible"
       @reload="reloadPay"
       @close-click="editDialogVisible = false">
@@ -72,6 +77,7 @@
         pageSize: 10,
         logDialogVisible: false,
         editDialogVisible: false,
+        loading: false
       };
     },
 
@@ -81,25 +87,28 @@
           pageNum: this.currentPage,
           pageSize: this.pageSize
         });
-
-        api.fetchSettingPay(data)
-          .then(rep => {
-            if(rep) {
-              if(rep.data.pageData.length <= 0) {
-                this.payList = [];
+        this.loading = true;
+        setTimeout(() => {
+          api.fetchSettingPay(data)
+            .then(rep => {
+              this.loading = false;
+              if(rep) {
+                if(rep.data.pageData.length <= 0) {
+                  this.payList = [];
+                  this.payListTotal = rep.data.total;
+                }
+                let offset = (this.currentPage - 1)  * this.pageSize;
+                this.payList = rep.data.pageData.map((t, i) => Object.assign({}, t, {
+                  no: offset + i + 1
+                }));
                 this.payListTotal = rep.data.total;
+              }else {
+                this.$message.error('暂无数据');
               }
-              let offset = (this.currentPage - 1)  * this.pageSize;
-              this.payList = rep.data.pageData.map((t, i) => Object.assign({}, t, {
-                no: offset + i + 1
-              }));
-              this.payListTotal = rep.data.total;
-            }else {
-              this.$message.error('暂无数据');
-            }
+            })
+            .catch(err => {this.loading = false;this.$message.error(err);})
+        }, 200)
 
-          })
-          .catch(err => this.$message.error(err))
       },
 
       queryPay(filter) {

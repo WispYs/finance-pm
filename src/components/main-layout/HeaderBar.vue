@@ -34,7 +34,6 @@
       },
 
       logout() {
-        // TODO: connect api
         this.$router.push({ name: 'login' });
       }
     },

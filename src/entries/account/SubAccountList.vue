@@ -15,7 +15,11 @@
 
     <template>
       <div class="subAccount-list__table">
-        <sub-account-table :accounts="subAccountList"></sub-account-table>
+        <sub-account-table
+          v-loading="loading"
+          element-loading-text="加载中"
+          :accounts="subAccountList">
+        </sub-account-table>
       </div>
     </template>
     <div class="subAccount-list__pagination-bar" v-if="subAccountListTotal > 0">
@@ -54,7 +58,8 @@
           pid: ''
         },
         currentPage: 1,
-        pageSize: 10
+        pageSize: 10,
+        loading: false
       };
     },
 
@@ -63,7 +68,6 @@
       __fetchBelongList() {
         api.merchantAccountBelongList()
           .then(rep => {
-            console.log(rep)
             if(rep) {
               this.parentMerchantOptions = rep.data;
             }
@@ -75,27 +79,30 @@
           pageNum: this.currentPage,
           pageSize: this.pageSize
         });
-
-        api.fetchMerchantAccountList(data)
-          .then(rep => {
-            console.log(rep)
-            if(rep) {
-              if(rep.data.pageData.length <= 0) {
-                this.subAccountList = [];
-                this.subAccountListTotal = rep.data.total;
-                // this.$message.error('暂无数据')
+        this.loading = true;
+        setTimeout(() => {
+          api.fetchMerchantAccountList(data)
+            .then(rep => {
+              this.loading = false;
+              if(rep) {
+                if(rep.data.pageData.length <= 0) {
+                  this.subAccountList = [];
+                  this.subAccountListTotal = rep.data.total;
+                  // this.$message.error('暂无数据')
+                }else {
+                  let offset = (this.currentPage - 1) * this.pageSize;
+                  this.subAccountList = rep.data.pageData.map((t, i) => Object.assign({}, t, {
+                    no: offset + i + 1
+                  }));
+                  this.subAccountListTotal = rep.data.total;
+                }
               }else {
-                let offset = (this.currentPage - 1) * this.pageSize;
-                this.subAccountList = rep.data.pageData.map((t, i) => Object.assign({}, t, {
-                  no: offset + i + 1
-                }));
-                this.subAccountListTotal = rep.data.total;
+                this.$message.error('暂无数据');
               }
-            }else {
-              this.$message.error('暂无数据')
-            }
-          })
-          .catch(err => this.$message.error(err))
+            })
+            .catch(err => {this.loading = false;this.$message.error(err);})
+        }, 200)
+
       },
 
       querySubAccount(filter) {
@@ -107,7 +114,6 @@
 
       currentPageChange(page) {
         this.currentPage = page;
-
         this.__fetchSubAccount(this.currentFilter);
       }
     },

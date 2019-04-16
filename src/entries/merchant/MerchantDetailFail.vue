@@ -241,27 +241,6 @@
         </div> -->
       </el-collapse>
 
-      <!-- <div class="merchant-detail__info">
-        <h3 class="merchant-detail__info-title">影像资料</h3>
-        <ul class="image-wrap">
-          <li class="image-list">
-            <img src="~images/mf.jpg" alt="">
-          </li>
-          <li class="image-list">
-            <img src="~images/mf.jpg" alt="">
-          </li>
-          <li class="image-list">
-            <img src="~images/mf.jpg" alt="">
-          </li>
-          <li class="image-list">
-            <img src="~images/mf.jpg" alt="">
-          </li>
-          <li class="image-list">
-            <img src="~images/mf.jpg" alt="">
-          </li>
-        </ul>
-      </div> -->
-
       <div class="merchant-detail__footer">
         <el-button @click="resetForm('merchantDetail')">重置</el-button>
         <el-button type="primary" @click="submitForm('merchantDetail')">重新提交</el-button>
@@ -272,8 +251,8 @@
 
 <script>
   import api        from '@/api/api';
-  import bankList   from '@/data/bank-list';
-  import format     from '@/common/format';
+  // import bankList   from '@/data/bank-list'; // 由于要回显数据 所以不可以用import的方法获取
+  import format     from '@/services/format';
   export default {
     data() {
       let validateMobile = (rule, value, callback) => {
@@ -418,7 +397,23 @@
             { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur'] }
           ],
         },
-        searchBankList: []
+        bankList: [
+          { value: 'BOC', label: '中国银行' },
+          { value: 'ABC', label: '中国农业银行' },
+          { value: 'ICBC', label: '中国工商银行' },
+          { value: 'CCB', label: '中国建设银行' },
+          { value: 'COMM', label: '交通银行' },
+          { value: 'PSBC', label: '中国邮政储蓄银行' },
+          { value: 'CMB', label: '招商银行' },
+          { value: 'CITIC', label: '中信银行' },
+          { value: 'CEB', label: '中国光大银行' },
+          { value: 'HXB', label: '华夏银行' },
+          { value: 'GDB', label: '广发银行' },
+          { value: 'SPDB', label: '浦东发展银行' },
+          { value: 'SHB', label: '上海银行' },
+          { value: 'SPAB', label: '平安银行' },
+        ],
+        searchBankList: [],
       }
 
     },
@@ -428,8 +423,9 @@
       }
     },
     methods: {
+      // 初始化银行列表
       __fetchBankList() {
-        this.searchBankList = bankList;
+        this.searchBankList = this.bankList;
       },
       __fetchCity() {
         api.getRegions()
@@ -458,6 +454,7 @@
           .catch(err => this.$message.error(err))
       },
       searchBank(query) {
+        console.log(query)
         if (query !== '') {
           this.searchBankLoading = true;
           let data = {
@@ -477,7 +474,6 @@
                     }
                     searchBankList.push(item);
                   }
-                  console.log(searchBankList);
                   this.searchBankList = searchBankList;
                 }else {
                   this.searchBankList = [];
@@ -514,7 +510,10 @@
           .then(rep => {
             if(rep.data) {
               console.log(rep.data.commercial.status)
-              this.checkStatus = rep.data.commercial.status;  // 0 入网失败 商户信息可编辑   1 入网成功  商户信息不可编辑
+              // 审核失败包括两种状态： 0 入网失败；1 入网成功
+              // 审核中只有一种： 1 入网成功
+              // 0 入网失败： 入网提交信息均可编辑   1 入网成功： 入网提交信息不可编辑(图片资料可编辑)
+              this.checkStatus = rep.data.commercial.status;  //
               let sTime = rep.data.commercial.startTime ? new Date(rep.data.commercial.startTime) : '';
               let eTime = rep.data.commercial.endTime ? new Date(rep.data.commercial.endTime) : '';
               let uTime = rep.data.commercial.updateTime ? this.formatDateTime(rep.data.commercial.updateTime) : '';
@@ -526,15 +525,18 @@
                 idNoUrl_1: rep.data.commercial.idNoUrl.split(',')[0],
                 idNoUrl_2: rep.data.commercial.idNoUrl.split(',')[1],
               });
+              if(this.merchantDetail.bankCode) {
+                // 如果存在绑定银行卡信息
+                // 将回显信息push到searchBankList用作渲染
+                this.__fetchBankList();
+                this.searchBankList.push({
+                  label: this.merchantDetail.bankName,
+                  value: this.merchantDetail.bankCode
+                })
+              }
             }else {
               this.$message.error('获取商户信息失败')
             }
-            // this.merchantDetail.city = [rep.data.commercial.province, rep.data.commercial.city];
-            // this.merchantDetail.startTime = sTime ;
-            // this.merchantDetail.endTime = eTime ;
-            // this.merchantDetail.updateTime = uTime;
-            // this.merchantDetail.idNoUrl_1 = rep.data.commercial.idNoUrl.split(',')[0];
-            // this.merchantDetail.idNoUrl_2 = rep.data.commercial.idNoUrl.split(',')[1];
 
           })
           .catch(err => this.$message.error(err))
@@ -611,23 +613,17 @@
         api.setAccountSetting(setting)
           .then(rep => {
             console.log('setting-----')
-            this.$message({
-              message: '修改商户信息成功',
-              type: 'success'
-            });
           })
           .catch(err => this.$message.error(err));
       },
       submitForm(formName) {
         this.$refs[formName].validate((valid) => {
-          console.log(valid)
           if (valid) {
             if(this.merchantDetail.idNoUrl_2 == ''){
               this.$message.error('请上传法人身份证');
               return
             }
             this.userId = this.$route.params.merchantId;
-            console.log(this.userId)
             // 企业入网
             let params = {
               commercial: {
@@ -654,7 +650,6 @@
                 cardNo: this.merchantDetail.cardNo
               }
             }
-            console.log(params)
             // 不管入网接口成功失败 跳转到审核页面
             api.registerCommercial(params)
               .then(rep => {
@@ -742,7 +737,6 @@
       },
 
       beforeAvatarUpload(file) {
-
         const isJPG = file.type === 'image/jpeg';
         const isLt2M = file.size / 1024 / 1024 < 2;
         if (!isJPG) {
@@ -756,7 +750,6 @@
 
       cityChange(val) {
         console.log(val)
-
       }
     },
     created() {
@@ -766,8 +759,8 @@
       this.financeType = this.$store.state.user ? this.$store.state.user.type : '';
     },
     mounted() {
-      this.__fetchCity();
       this.__fetchBankList();
+      this.__fetchCity();
     }
   };
 </script>
@@ -909,13 +902,6 @@
       margin: 0 auto 30px;
       span {
         display: inline-block;
-        // margin-right: 20px;
-        // img{
-        //   margin-bottom: 10px;
-        //   display: block;
-        //   width: 220px;
-        //   height: 150px;
-        // }
       }
       .log-list{
         margin-left: 60px;

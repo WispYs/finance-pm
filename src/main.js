@@ -17,19 +17,21 @@ new Vue({
 
 router.beforeEach((to, from, next) => {
   let token = localStorage.getItem('FINANCE_TOKEN');
-  if (token) { // 判断当前的token是否存在 ； 登录存入的token
+  if(to.path === '/') {
+    // 登出时删除本地用户记录
+    localStorage.removeItem('FINANCE_TOKEN');
+    localStorage.removeItem('FINANCE_USERID');
     next();
-  }
-  else {
-    if(to.path === '/'){
+  }else {
+    if(token) {
       next();
     }else {
       next({
         path:'/'
       })
     }
-
   }
 });
+
 store.dispatch('LOGIN');
 

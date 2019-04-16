@@ -1,8 +1,6 @@
 <template>
   <div class="merchant-table">
     <el-table :data="merchants" ref="merchantTable" @selection-change="selectionChange" border empty-text="没有符合查询条件的数据">
-      <!-- <el-table-column type="selection" width="30" fixed="left"></el-table-column> -->
-
       <el-table-column label="序号" width="50" show-overflow-tooltip fixed="left">
         <template slot-scope="scope">{{ scope.row.no }}</template>
       </el-table-column>
@@ -86,7 +84,7 @@
 
 <script>
   import eventHub from '@/services/event-hub';
-  import format   from '@/common/format';
+  import format   from '@/services/format';
 
   export default {
     props: ['merchants'],

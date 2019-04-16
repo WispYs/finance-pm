@@ -1,5 +1,5 @@
 <template>
-  <div class="login">
+  <div class="login" v-loading="loading">
     <div class="login__title">水滴金融后台管理系统</div>
 
     <div class="login__username">
@@ -40,6 +40,7 @@
   export default {
     data() {
       return {
+        loading: false,
         username: '',
         password: ''
       };
@@ -58,34 +59,38 @@
           this.$message.error('请输入密码')
           return
         }
+        this.loading = true;
+        setTimeout(() => {
+          api.fetchUserLogin({ username, password })
+            .then(rep => {
+              this.loading = false;
+              if(rep.data) {
 
-        api.fetchUserLogin({ username, password })
-          .then(rep => {
-            if(rep.data) {
-              this.$message({
-                message: '登录成功',
-                type: 'success'
-              });
-              let user = Object.assign({}, rep.data, {
-                username: username,
-                password: password
-              })
-              this.$store.dispatch('SAVE_USER', user);
-              localStorage.setItem('FINANCE_TOKEN', rep.data.token);
-              localStorage.setItem('FINANCE_USERID', rep.data.userId);
-              let financeType = rep.data.type;
-              // 水滴、B端商户跳转到商户列表; 魔方类子商户跳转到我的账号;   1、水滴；2、魔方类(B端)；3、魔方子商户
-              if(financeType == '3') {
-                this.$router.push({ name: 'account__myAccount' });
+                this.$message({
+                  message: '登录成功',
+                  type: 'success'
+                });
+                let user = rep.data;
+                let financeType = rep.data.type;
+
+                this.$store.dispatch('SAVE_USER', user);
+                // 保存本地用于接口调用
+                localStorage.setItem('FINANCE_TOKEN', rep.data.token);
+                localStorage.setItem('FINANCE_USERID', rep.data.userId);
+                // 水滴、B端商户跳转到商户列表; 魔方类子商户跳转到我的账号;   1、水滴；2、魔方类(B端)；3、魔方子商户
+                if(financeType == '3') {
+                  this.$router.push({ name: 'account__myAccount' });
+                }else {
+                  this.$router.push({ name: 'merchantMgt__merchantList' });
+                }
               }else {
-                this.$router.push({ name: 'merchantMgt__merchantList' });
+                this.$message.error('网络错误')
               }
-            }else {
-              this.$message.error('网络错误')
-            }
 
-          })
-          .catch(err => this.$message.error(err))
+            })
+            .catch(err => {this.loading = false;this.$message.error(err);})
+        }, 200)
+
       }
     }
   };
