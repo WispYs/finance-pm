@@ -14,6 +14,8 @@
 ## 本地开发 ##
 运行 `yarn run dev` 会启动一个本地服务器，浏览器能访问到 http://localhost:8080, 说明本地开发环境运行成功。
 
+## 测试账号 ##
+账号：arvin.dong@ixiaoshuidi.com	密码：123456
 
 ## 构建生产 ##
 运行 `yarn run build` 构建命令即会生成或更新 dist 文件夹。
